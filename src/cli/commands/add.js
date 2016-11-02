@@ -120,6 +120,22 @@ export class Add extends Install {
 
       // build up list of objects to put ourselves into from the cli args
       const targetKeys: Array<string> = [];
+      if (this.config.commandName === 'upgrade') {
+        // use prototype to avoid passing args as `excludePatterns` parameter
+        await Install.prototype.fetchRequestFromCwd.call(this);
+
+        const keys = Object.keys(this.rootPatternsToOrigin);
+        const depType = keys.reduce((acc, prev) => {
+          // lookup the package to determine dependency type
+          if (prev.indexOf(`${pkg.name}@`) === 0) {
+            return this.rootPatternsToOrigin[prev];
+          }
+
+          return acc;
+        }, null);
+
+        targetKeys.push(depType);
+      }
       if (dev) {
         targetKeys.push('devDependencies');
       }
